@@ -32,6 +32,7 @@ from wordcloud import WordCloud
 from typing import List, Dict, Optional, Tuple
 import argparse
 import logging
+from database import get_database
 
 # 配置日志
 logging.basicConfig(
@@ -201,6 +202,13 @@ class BilibiliAnalyzer:
         # 自动保存原始数据
         self.auto_save_raw_data('popular')
 
+        # 保存到数据库
+        db = get_database()
+        if db and videos:
+            crawl_id = db.save_crawl_record('popular', None, len(videos))
+            db.save_videos(videos, crawl_id)
+            self._current_crawl_id = crawl_id
+
         return videos
 
     def fetch_ranking_videos(self, partition: str = '全站', delay: float = 1.0) -> List[Dict]:
@@ -255,6 +263,13 @@ class BilibiliAnalyzer:
 
         # 自动保存原始数据
         self.auto_save_raw_data(f'ranking_{partition}')
+
+        # 保存到数据库
+        db = get_database()
+        if db and videos:
+            crawl_id = db.save_crawl_record('ranking', partition, len(videos))
+            db.save_videos(videos, crawl_id)
+            self._current_crawl_id = crawl_id
 
         return videos
 
@@ -339,6 +354,11 @@ class BilibiliAnalyzer:
         )
 
         logger.info(f"关键词分析完成，提取了 {len(tfidf_keywords)} 个TF-IDF关键词")
+
+        # 保存关键词到数据库
+        db = get_database()
+        if db and tfidf_keywords and hasattr(self, '_current_crawl_id'):
+            db.save_keywords(tfidf_keywords, self._current_crawl_id)
 
         return word_freq, tfidf_keywords
 

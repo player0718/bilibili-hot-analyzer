@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 # BILIBILI_AUTO_SAVE: 是否自动保存爬取的原始数据 (true/false，默认true)
 AUTO_SAVE_ENABLED = os.environ.get('BILIBILI_AUTO_SAVE', 'true').lower() == 'true'
 
+# 导入数据库模块
+from database import get_database
+
 app = Flask(__name__)
 
 # B站API配置
@@ -230,6 +233,14 @@ def api_fetch():
         save_type = f"{data_type}_{partition}" if data_type == 'ranking' else data_type
         auto_save_raw_data(videos, save_type)
 
+        # 保存到数据库
+        db = get_database()
+        if db:
+            partition_name = partition if data_type == 'ranking' else None
+            crawl_id = db.save_crawl_record(data_type, partition_name, len(videos))
+            db.save_videos(videos, crawl_id)
+            cache['crawl_id'] = crawl_id
+
         return jsonify({
             'success': True,
             'count': len(videos),
@@ -288,6 +299,91 @@ def api_export():
         'success': True,
         'message': f'数据已导出到 {filepath}',
         'filename': filename
+    })
+
+
+@app.route('/api/history')
+def api_history():
+    """获取历史爬取记录"""
+    db = get_database()
+    if not db:
+        return jsonify({'success': False, 'message': '数据库未启用'})
+
+    limit = request.args.get('limit', 20, type=int)
+    records = db.get_crawl_records(limit)
+
+    return jsonify({
+        'success': True,
+        'records': records
+    })
+
+
+@app.route('/api/history/<int:crawl_id>')
+def api_history_detail(crawl_id):
+    """获取指定爬取记录的详细数据"""
+    db = get_database()
+    if not db:
+        return jsonify({'success': False, 'message': '数据库未启用'})
+
+    videos = db.get_videos_by_crawl_id(crawl_id)
+    keywords = db.get_trending_keywords(crawl_id)
+
+    return jsonify({
+        'success': True,
+        'videos': videos,
+        'keywords': keywords
+    })
+
+
+@app.route('/api/stats')
+def api_stats():
+    """获取数据库统计信息"""
+    db = get_database()
+    if not db:
+        return jsonify({'success': False, 'message': '数据库未启用'})
+
+    stats = db.get_statistics()
+
+    return jsonify({
+        'success': True,
+        'stats': stats
+    })
+
+
+@app.route('/api/search')
+def api_search():
+    """搜索历史视频"""
+    db = get_database()
+    if not db:
+        return jsonify({'success': False, 'message': '数据库未启用'})
+
+    keyword = request.args.get('q', '')
+    if not keyword:
+        return jsonify({'success': False, 'message': '请提供搜索关键词'})
+
+    videos = db.search_videos(keyword)
+
+    return jsonify({
+        'success': True,
+        'videos': videos,
+        'count': len(videos)
+    })
+
+
+@app.route('/api/top-ups')
+def api_top_ups():
+    """获取热门UP主"""
+    db = get_database()
+    if not db:
+        return jsonify({'success': False, 'message': '数据库未启用'})
+
+    days = request.args.get('days', 7, type=int)
+    limit = request.args.get('limit', 20, type=int)
+    ups = db.get_top_ups(days, limit)
+
+    return jsonify({
+        'success': True,
+        'ups': ups
     })
 
 

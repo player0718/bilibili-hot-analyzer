@@ -175,6 +175,7 @@ python bilibili_analyzer.py -p 2 -d 0.5
 | 环境变量 | 说明 | 默认值 |
 |----------|------|--------|
 | `BILIBILI_AUTO_SAVE` | 是否自动保存爬取的原始数据 | `true` |
+| `BILIBILI_DB_ENABLED` | 是否启用SQLite数据库存储 | `true` |
 
 ### 使用示例
 
@@ -193,6 +194,32 @@ set BILIBILI_AUTO_SAVE=false && python bilibili_analyzer.py
 ```
 
 自动保存功能会将爬取的原始数据保存为JSON文件到 `output` 目录，文件名格式为 `raw_data_{type}_{timestamp}.json`。
+
+## 数据库功能
+
+项目使用SQLite轻量级数据库存储历史数据，数据库文件位于 `output/bilibili_data.db`。
+
+### 数据库API端点
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/history` | GET | 获取历史爬取记录列表 |
+| `/api/history/<id>` | GET | 获取指定爬取记录的详细数据 |
+| `/api/stats` | GET | 获取数据库统计信息 |
+| `/api/search?q=关键词` | GET | 搜索历史视频 |
+| `/api/top-ups?days=7` | GET | 获取热门UP主排行 |
+
+### 数据库表结构
+
+- `crawl_records`: 爬取记录
+- `videos`: 视频数据
+- `keywords`: 关键词统计
+
+### 关闭数据库
+
+```bash
+BILIBILI_DB_ENABLED=false python bilibili_analyzer.py
+```
 
 ## 注意事项
 

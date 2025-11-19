@@ -12,6 +12,7 @@
 - **中文分词**: jieba
 - **可视化**: matplotlib, wordcloud, ECharts (前端)
 - **HTTP请求**: requests
+- **数据库**: SQLite (内置)
 
 ## 项目结构
 
@@ -19,11 +20,15 @@
 bilibili-hot-analyzer/
 ├── bilibili_analyzer.py   # 命令行分析脚本
 ├── web_app.py             # Flask Web应用
+├── database.py            # SQLite数据库模块
+├── setup.sh               # Linux/macOS部署脚本
+├── setup.bat              # Windows部署脚本
 ├── templates/
 │   └── index.html         # Web界面模板
 ├── requirements.txt       # Python依赖
 ├── README.md              # 项目文档
 └── output/                # 输出目录(自动创建)
+    └── bilibili_data.db   # SQLite数据库文件
 ```
 
 ## 核心功能模块
@@ -44,12 +49,28 @@ bilibili-hot-analyzer/
   - `POST /api/fetch`: 获取数据
   - `GET /api/analysis`: 获取分析结果
   - `GET /api/export`: 导出CSV
+  - `GET /api/history`: 获取历史爬取记录
+  - `GET /api/history/<id>`: 获取指定记录详情
+  - `GET /api/stats`: 数据库统计
+  - `GET /api/search`: 搜索视频
+  - `GET /api/top-ups`: 热门UP主
+
+### database.py
+- `BilibiliDatabase` 类: 数据库操作
+  - `save_crawl_record()`: 保存爬取记录
+  - `save_videos()`: 批量保存视频
+  - `save_keywords()`: 保存关键词
+  - `get_crawl_records()`: 获取历史记录
+  - `get_videos_by_crawl_id()`: 按ID获取视频
+  - `search_videos()`: 搜索视频
+  - `get_statistics()`: 数据库统计
 
 ## 环境变量
 
 | 变量 | 说明 | 默认值 |
 |------|------|--------|
 | `BILIBILI_AUTO_SAVE` | 自动保存爬取数据 | `true` |
+| `BILIBILI_DB_ENABLED` | 启用SQLite数据库 | `true` |
 
 ## 开发指南
 
@@ -102,6 +123,7 @@ BILIBILI_AUTO_SAVE=false python bilibili_analyzer.py
 - PNG: 词云图、分析图表
 - TXT: 文字分析报告
 - JSON: 原始数据(自动保存)
+- SQLite: 历史数据存储 (bilibili_data.db)
 
 ## 注意事项
 
