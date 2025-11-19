@@ -151,6 +151,30 @@ python bilibili_analyzer.py -t 排行榜 -r 科技
 python bilibili_analyzer.py -p 2 -d 0.5
 ```
 
+## 环境变量配置
+
+| 环境变量 | 说明 | 默认值 |
+|----------|------|--------|
+| `BILIBILI_AUTO_SAVE` | 是否自动保存爬取的原始数据 | `true` |
+
+### 使用示例
+
+```bash
+# 关闭自动保存
+BILIBILI_AUTO_SAVE=false python bilibili_analyzer.py
+
+# 开启自动保存（默认行为）
+BILIBILI_AUTO_SAVE=true python bilibili_analyzer.py
+
+# Windows PowerShell
+$env:BILIBILI_AUTO_SAVE="false"; python bilibili_analyzer.py
+
+# Windows CMD
+set BILIBILI_AUTO_SAVE=false && python bilibili_analyzer.py
+```
+
+自动保存功能会将爬取的原始数据保存为JSON文件到 `output` 目录，文件名格式为 `raw_data_{type}_{timestamp}.json`。
+
 ## 注意事项
 
 1. **请求频率**: 脚本默认每次请求间隔1秒，请勿过于频繁调用以避免被限制

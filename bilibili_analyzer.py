@@ -40,6 +40,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# 环境变量配置
+# BILIBILI_AUTO_SAVE: 是否自动保存爬取的原始数据 (true/false，默认true)
+AUTO_SAVE_ENABLED = os.environ.get('BILIBILI_AUTO_SAVE', 'true').lower() == 'true'
+
 # 设置matplotlib中文字体
 plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
@@ -109,6 +113,35 @@ class BilibiliAnalyzer:
             os.makedirs(output_dir)
             logger.info(f"创建输出目录: {output_dir}")
 
+    def auto_save_raw_data(self, data_type: str = 'popular'):
+        """
+        自动保存原始数据到本地
+
+        Args:
+            data_type: 数据类型标识
+        """
+        if not AUTO_SAVE_ENABLED:
+            return
+
+        if not self.videos_data:
+            return
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+
+        # 保存JSON格式的原始数据
+        json_filename = f"raw_data_{data_type}_{timestamp}.json"
+        json_path = os.path.join(self.output_dir, json_filename)
+
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump({
+                'fetch_time': timestamp,
+                'data_type': data_type,
+                'count': len(self.videos_data),
+                'videos': self.videos_data
+            }, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"原始数据已自动保存: {json_path}")
+
     def fetch_popular_videos(self, page_count: int = 5, delay: float = 1.0) -> List[Dict]:
         """
         获取综合热门视频
@@ -164,6 +197,10 @@ class BilibiliAnalyzer:
 
         self.videos_data = videos
         logger.info(f"共获取 {len(videos)} 个热门视频")
+
+        # 自动保存原始数据
+        self.auto_save_raw_data('popular')
+
         return videos
 
     def fetch_ranking_videos(self, partition: str = '全站', delay: float = 1.0) -> List[Dict]:
@@ -215,6 +252,10 @@ class BilibiliAnalyzer:
             logger.error(f"解析排行榜数据时出错: {e}")
 
         self.videos_data = videos
+
+        # 自动保存原始数据
+        self.auto_save_raw_data(f'ranking_{partition}')
+
         return videos
 
     def _extract_video_info(self, video: Dict) -> Dict:

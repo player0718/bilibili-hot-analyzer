@@ -24,6 +24,10 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 环境变量配置
+# BILIBILI_AUTO_SAVE: 是否自动保存爬取的原始数据 (true/false，默认true)
+AUTO_SAVE_ENABLED = os.environ.get('BILIBILI_AUTO_SAVE', 'true').lower() == 'true'
+
 app = Flask(__name__)
 
 # B站API配置
@@ -55,6 +59,33 @@ cache = {
     'last_fetch': None,
     'fetch_type': None
 }
+
+
+def auto_save_raw_data(videos, data_type='popular'):
+    """自动保存原始数据到本地"""
+    if not AUTO_SAVE_ENABLED:
+        return
+
+    if not videos:
+        return
+
+    output_dir = 'output'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    json_filename = f"raw_data_{data_type}_{timestamp}.json"
+    json_path = os.path.join(output_dir, json_filename)
+
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump({
+            'fetch_time': timestamp,
+            'data_type': data_type,
+            'count': len(videos),
+            'videos': videos
+        }, f, ensure_ascii=False, indent=2)
+
+    logger.info(f"原始数据已自动保存: {json_path}")
 
 
 def fetch_videos(data_type='popular', pages=5, partition='全站', delay=0.5):
@@ -194,6 +225,10 @@ def api_fetch():
         cache['videos'] = videos
         cache['last_fetch'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cache['fetch_type'] = f"{data_type}-{partition}" if data_type == 'ranking' else data_type
+
+        # 自动保存原始数据
+        save_type = f"{data_type}_{partition}" if data_type == 'ranking' else data_type
+        auto_save_raw_data(videos, save_type)
 
         return jsonify({
             'success': True,
