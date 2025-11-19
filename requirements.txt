@@ -14,5 +14,8 @@ jieba>=0.42.1
 matplotlib>=3.6.0
 wordcloud>=1.9.0
 
+# Web界面
+flask>=2.3.0
+
 # 可选：更好的图表样式
 # seaborn>=0.12.0
