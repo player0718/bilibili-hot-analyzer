@@ -12,14 +12,33 @@
 
 ## 安装
 
-### 1. 克隆项目
+### 快速部署（推荐）
+
+使用一键部署脚本自动完成所有安装步骤：
+
+**Linux/macOS:**
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+**Windows:**
+```cmd
+setup.bat
+```
+
+脚本会自动完成：创建虚拟环境、安装依赖、安装中文字体、测试API连接。
+
+### 手动安装
+
+#### 1. 克隆项目
 
 ```bash
 git clone <repository-url>
 cd bilibili-hot-analyzer
 ```
 
-### 2. 创建虚拟环境（推荐）
+#### 2. 创建虚拟环境（推荐）
 
 ```bash
 python -m venv venv
@@ -28,13 +47,13 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate  # Windows
 ```
 
-### 3. 安装依赖
+#### 3. 安装依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. 安装中文字体（用于词云生成）
+#### 4. 安装中文字体（用于词云生成）
 
 **Ubuntu/Debian:**
 ```bash
