@@ -90,6 +90,25 @@ sudo yum install wqy-microhei-fonts wqy-zenhei-fonts
 **Windows:**
 系统自带中文字体，无需安装。
 
+## 快速启动
+
+安装完成后，使用一键启动脚本自动激活环境并启动Web应用：
+
+**Linux/macOS:**
+```bash
+./start.sh
+```
+
+**Windows:**
+```cmd
+start.bat
+```
+
+脚本会自动：
+- ✅ 激活虚拟环境
+- ✅ 启动Web服务器
+- ✅ 打开浏览器访问 http://localhost:5000
+
 ## 使用方法
 
 ### 基本用法
