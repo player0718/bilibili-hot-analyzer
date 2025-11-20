@@ -362,8 +362,9 @@
                 </div>
 
                 <div class="control-group">
-                    <label>页数 (每页20个)</label>
+                    <label id="pagesLabel">页数 (每页20个)</label>
                     <input type="number" id="pages" value="5" min="1" max="20">
+                    <small id="pagesHint" style="display:none; color:#888; font-size:12px;">排行榜固定返回约100个视频</small>
                 </div>
 
                 <div class="control-group" id="partitionGroup" style="display:none;">
@@ -489,8 +490,23 @@
     <script>
         // 数据类型切换
         document.getElementById('dataType').addEventListener('change', function() {
-            document.getElementById('partitionGroup').style.display =
-                this.value === 'ranking' ? 'block' : 'none';
+            const isRanking = this.value === 'ranking';
+            document.getElementById('partitionGroup').style.display = isRanking ? 'block' : 'none';
+
+            // 排行榜模式下禁用页数输入并显示提示
+            const pagesInput = document.getElementById('pages');
+            const pagesHint = document.getElementById('pagesHint');
+            if (isRanking) {
+                pagesInput.disabled = true;
+                pagesInput.value = 1;
+                pagesInput.style.opacity = '0.5';
+                pagesHint.style.display = 'block';
+            } else {
+                pagesInput.disabled = false;
+                pagesInput.value = 5;
+                pagesInput.style.opacity = '1';
+                pagesHint.style.display = 'none';
+            }
         });
 
         // 格式化数字

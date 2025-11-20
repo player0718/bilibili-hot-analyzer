@@ -145,12 +145,16 @@ def fetch_videos(data_type='popular', pages=5, partition='全站', delay=0.5):
             except Exception as e:
                 logger.error(f"获取第{page}页失败: {e}")
     else:
+        # 排行榜API不支持分页，只能获取固定数量（约100个）
         try:
             tid = PARTITION_MAP.get(partition, 0)
             # 排行榜API需要特定的Referer
             session.headers.update({
                 'Referer': 'https://www.bilibili.com/v/popular/rank/all'
             })
+
+            logger.info(f"注意：排行榜API只返回固定数量的视频（约100个），不支持分页")
+
             response = session.get(
                 BILIBILI_API['ranking'],
                 params={'rid': tid, 'type': 'all'},
@@ -160,6 +164,7 @@ def fetch_videos(data_type='popular', pages=5, partition='全站', delay=0.5):
             if data['code'] == 0:
                 for video in data['data']['list']:
                     videos.append(extract_video_info(video))
+                logger.info(f"排行榜获取成功：{len(videos)} 个视频")
             else:
                 logger.error(f"排行榜API返回错误: code={data['code']}, message={data.get('message', '未知')}")
         except Exception as e:
