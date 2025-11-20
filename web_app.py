@@ -56,12 +56,39 @@ STOP_WORDS = set([
     '第一', '第二', '第三', '视频', 'BV', 'av', 'UP', 'up'
 ])
 
+# 缓存配置
+CACHE_DIR = 'output'
+CACHE_FILE = os.path.join(CACHE_DIR, 'web_cache.json')
+
 # 全局缓存
 cache = {
     'videos': [],
     'last_fetch': None,
     'fetch_type': None
 }
+
+def load_cache_from_file():
+    """从文件加载缓存"""
+    global cache
+    try:
+        if os.path.exists(CACHE_FILE):
+            with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                cache = json.load(f)
+            logger.info(f"从缓存文件加载数据: {len(cache.get('videos', []))} 个视频")
+            return True
+    except Exception as e:
+        logger.error(f"加载缓存失败: {e}")
+    return False
+
+def save_cache_to_file():
+    """保存缓存到文件"""
+    try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+        logger.info("缓存已保存到文件")
+    except Exception as e:
+        logger.error(f"保存缓存失败: {e}")
 
 
 def auto_save_raw_data(videos, data_type='popular'):
@@ -241,6 +268,9 @@ def api_fetch():
         cache['last_fetch'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         cache['fetch_type'] = f"{data_type}-{partition}" if data_type == 'ranking' else data_type
 
+        # 保存缓存到文件
+        save_cache_to_file()
+
         # 自动保存原始数据
         save_type = f"{data_type}_{partition}" if data_type == 'ranking' else data_type
         auto_save_raw_data(videos, save_type)
@@ -403,6 +433,12 @@ if __name__ == '__main__':
     # 创建模板目录
     if not os.path.exists('templates'):
         os.makedirs('templates')
+
+    # 加载缓存数据
+    if load_cache_from_file():
+        print(f"✅ 已从缓存加载 {len(cache.get('videos', []))} 个视频数据")
+    else:
+        print("ℹ️  未找到缓存数据，需要重新获取")
 
     print("""
 ╔══════════════════════════════════════════════════════════════╗
