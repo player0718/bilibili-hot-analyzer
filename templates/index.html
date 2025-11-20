@@ -553,11 +553,17 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    renderDashboard(data);
+                    // 先显示内容区域，隐藏加载提示
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                     document.getElementById('fetchInfo').textContent =
                         `数据获取时间: ${data.fetch_time} | 类型: ${data.fetch_type}`;
+
+                    // 延迟渲染，确保DOM完全显示
+                    setTimeout(() => {
+                        renderDashboard(data);
+                        resizeAllCharts();
+                    }, 100);
                 }
             } catch (error) {
                 console.error('加载分析失败:', error);
@@ -610,6 +616,8 @@
                     data: wordData
                 }]
             });
+            // 立即resize确保尺寸正确
+            setTimeout(() => chart.resize(), 0);
         }
 
         // 分区分布饼图
@@ -685,6 +693,8 @@
                     }
                 }]
             });
+            // 立即resize确保尺寸正确
+            setTimeout(() => chart.resize(), 0);
         }
 
         // 互动率分析
@@ -767,6 +777,8 @@
                     }
                 }]
             });
+            // 立即resize确保尺寸正确
+            setTimeout(() => chart.resize(), 0);
         }
 
         // 热门UP主
@@ -818,6 +830,8 @@
                     }
                 }]
             });
+            // 立即resize确保尺寸正确
+            setTimeout(() => chart.resize(), 0);
         }
 
         // 关键词列表
@@ -862,6 +876,21 @@
             }
         }
 
+        // 统一resize所有图表
+        function resizeAllCharts() {
+            const charts = ['wordcloudChart', 'partitionChart', 'viewDistChart',
+                          'interactionChart', 'topVideosChart', 'topUpsChart'];
+            charts.forEach(id => {
+                const dom = document.getElementById(id);
+                if (dom) {
+                    const chart = echarts.getInstanceByDom(dom);
+                    if (chart) {
+                        chart.resize();
+                    }
+                }
+            });
+        }
+
         // 页面加载时尝试恢复缓存数据
         window.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -869,12 +898,21 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // 有缓存数据，自动加载
-                    renderDashboard(data);
+                    // 有缓存数据，先显示内容区域
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('content').style.display = 'block';
                     document.getElementById('fetchInfo').textContent =
                         `数据获取时间: ${data.fetch_time} | 类型: ${data.fetch_type} (已从缓存加载)`;
+
+                    // 延迟渲染图表，确保容器完全显示
+                    setTimeout(() => {
+                        renderDashboard(data);
+                        // 再次延迟resize确保图表完全加载
+                        setTimeout(() => {
+                            resizeAllCharts();
+                        }, 200);
+                    }, 100);
+
                     console.log('已从缓存加载数据');
                 }
             } catch (error) {
@@ -883,14 +921,7 @@
         });
 
         // 窗口大小改变时重绘图表
-        window.addEventListener('resize', function() {
-            const charts = ['wordcloudChart', 'partitionChart', 'viewDistChart',
-                          'interactionChart', 'topVideosChart', 'topUpsChart'];
-            charts.forEach(id => {
-                const chart = echarts.getInstanceByDom(document.getElementById(id));
-                if (chart) chart.resize();
-            });
-        });
+        window.addEventListener('resize', resizeAllCharts);
     </script>
 </body>
 </html>
