@@ -96,8 +96,9 @@ def fetch_videos(data_type='popular', pages=5, partition='全站', delay=0.5):
     videos = []
     session = requests.Session()
     session.headers.update({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': 'https://www.bilibili.com/',
+        'Origin': 'https://www.bilibili.com',
     })
 
     if data_type == 'popular':
@@ -119,6 +120,10 @@ def fetch_videos(data_type='popular', pages=5, partition='全站', delay=0.5):
     else:
         try:
             tid = PARTITION_MAP.get(partition, 0)
+            # 排行榜API需要特定的Referer
+            session.headers.update({
+                'Referer': 'https://www.bilibili.com/v/popular/rank/all'
+            })
             response = session.get(
                 BILIBILI_API['ranking'],
                 params={'rid': tid, 'type': 'all'},
@@ -128,8 +133,10 @@ def fetch_videos(data_type='popular', pages=5, partition='全站', delay=0.5):
             if data['code'] == 0:
                 for video in data['data']['list']:
                     videos.append(extract_video_info(video))
+            else:
+                logger.error(f"排行榜API返回错误: code={data['code']}, message={data.get('message', '未知')}")
         except Exception as e:
-            logger.error(f"获取排行榜失败: {e}")
+            logger.error(f"获取排行榜失败: {e}", exc_info=True)
 
     return videos
 

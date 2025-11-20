@@ -106,6 +106,7 @@ class BilibiliAnalyzer:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                          '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Referer': 'https://www.bilibili.com/',
+            'Origin': 'https://www.bilibili.com',
         })
         self.videos_data = []
 
@@ -229,6 +230,12 @@ class BilibiliAnalyzer:
         try:
             logger.info(f"正在获取 {partition} 分区排行榜...")
 
+            # 排行榜API需要特定的Referer
+            original_referer = self.session.headers.get('Referer')
+            self.session.headers.update({
+                'Referer': 'https://www.bilibili.com/v/popular/rank/all'
+            })
+
             params = {
                 'rid': tid,
                 'type': 'all'
@@ -252,7 +259,11 @@ class BilibiliAnalyzer:
 
                 logger.info(f"获取成功，获得 {len(video_list)} 个视频")
             else:
-                logger.error(f"API返回错误: {data.get('message', '未知错误')}")
+                logger.error(f"排行榜API返回错误: code={data['code']}, message={data.get('message', '未知错误')}")
+
+            # 恢复原始Referer
+            if original_referer:
+                self.session.headers.update({'Referer': original_referer})
 
         except requests.exceptions.RequestException as e:
             logger.error(f"请求排行榜时出错: {e}")
