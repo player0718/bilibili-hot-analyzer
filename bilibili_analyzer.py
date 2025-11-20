@@ -293,6 +293,11 @@ class BilibiliAnalyzer:
         # 提取UP主信息
         owner = video.get('owner', {})
 
+        # 将图片URL从HTTP转换为HTTPS，避免混合内容警告
+        pic_url = video.get('pic', '')
+        if pic_url.startswith('http://'):
+            pic_url = pic_url.replace('http://', 'https://', 1)
+
         return {
             'bvid': video.get('bvid', ''),
             'title': video.get('title', ''),
@@ -309,6 +314,7 @@ class BilibiliAnalyzer:
             'up_name': owner.get('name', ''),
             'up_mid': owner.get('mid', ''),
             'tname': video.get('tname', ''),       # 分区名称
+            'pic': pic_url,                        # 封面图片（HTTPS）
             'url': f"https://www.bilibili.com/video/{video.get('bvid', '')}"
         }
 
