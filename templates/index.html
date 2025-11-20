@@ -23,8 +23,9 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 0 15px;
         }
 
         .header {
@@ -152,9 +153,33 @@
             margin-bottom: 20px;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1400px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 1200px) {
             .charts-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .chart-container.large {
+                height: 350px;
             }
         }
 
@@ -178,11 +203,13 @@
         }
 
         .chart-container {
-            height: 350px;
+            height: 320px;
+            width: 100%;
         }
 
         .chart-container.large {
-            height: 450px;
+            height: 400px;
+            width: 100%;
         }
 
         .video-list {
@@ -626,13 +653,26 @@
 
             chart.setOption({
                 tooltip: { trigger: 'axis' },
+                grid: {
+                    left: '10%',
+                    right: '10%',
+                    top: '10%',
+                    bottom: '15%',
+                    containLabel: true
+                },
                 xAxis: {
                     type: 'category',
                     data: labels,
                     name: '播放量(万)',
-                    axisLabel: { rotate: 45 }
+                    axisLabel: {
+                        rotate: 45,
+                        fontSize: 10
+                    }
                 },
-                yAxis: { type: 'value', name: '视频数' },
+                yAxis: {
+                    type: 'value',
+                    name: '视频数'
+                },
                 series: [{
                     type: 'bar',
                     data: histogram,
@@ -675,18 +715,37 @@
             const chart = echarts.init(document.getElementById('topVideosChart'));
 
             const titles = topVideos.map(v =>
-                v.title.length > 20 ? v.title.substring(0, 20) + '...' : v.title
+                v.title.length > 15 ? v.title.substring(0, 15) + '...' : v.title
             ).reverse();
             const views = topVideos.map(v => v.view).reverse();
 
             chart.setOption({
-                tooltip: { trigger: 'axis' },
-                grid: { left: '25%', right: '10%' },
-                xAxis: { type: 'value', name: '播放量' },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        return params[0].name + ': ' + formatNumber(params[0].value);
+                    }
+                },
+                grid: {
+                    left: '5%',
+                    right: '15%',
+                    top: '5%',
+                    bottom: '5%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '播放量',
+                    axisLabel: {
+                        formatter: function(value) {
+                            return formatNumber(value);
+                        }
+                    }
+                },
                 yAxis: {
                     type: 'category',
                     data: titles,
-                    axisLabel: { fontSize: 10 }
+                    axisLabel: { fontSize: 9 }
                 },
                 series: [{
                     type: 'bar',
@@ -700,6 +759,7 @@
                     label: {
                         show: true,
                         position: 'right',
+                        fontSize: 10,
                         formatter: function(params) {
                             return formatNumber(params.value);
                         }
@@ -716,10 +776,33 @@
             const views = Object.values(topUps).reverse();
 
             chart.setOption({
-                tooltip: { trigger: 'axis' },
-                grid: { left: '30%', right: '15%' },
-                xAxis: { type: 'value', name: '总播放量' },
-                yAxis: { type: 'category', data: names },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        return params[0].name + ': ' + formatNumber(params[0].value);
+                    }
+                },
+                grid: {
+                    left: '5%',
+                    right: '15%',
+                    top: '5%',
+                    bottom: '5%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '总播放量',
+                    axisLabel: {
+                        formatter: function(value) {
+                            return formatNumber(value);
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: names,
+                    axisLabel: { fontSize: 10 }
+                },
                 series: [{
                     type: 'bar',
                     data: views,
@@ -727,6 +810,7 @@
                     label: {
                         show: true,
                         position: 'right',
+                        fontSize: 10,
                         formatter: function(params) {
                             return formatNumber(params.value);
                         }
