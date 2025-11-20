@@ -58,13 +58,15 @@
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
-            align-items: center;
+            align-items: flex-end;
         }
 
         .control-group {
             display: flex;
             flex-direction: column;
             gap: 5px;
+            min-height: 65px;
+            justify-content: flex-end;
         }
 
         .control-group label {
@@ -341,6 +343,53 @@
         .number-format {
             font-family: 'Courier New', monospace;
         }
+
+        /* Toast提示框 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff9800;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            display: none;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            font-size: 14px;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .toast.hide {
+            animation: slideOut 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -383,12 +432,11 @@
                     导出CSV
                 </button>
             </div>
-            <div class="fetch-info" id="fetchInfo">
-                <small id="rankingHint" style="display:none; color:#ff9800; font-size:13px; margin-left: 10px;">
-                    ⚠️ 排行榜API仅返回约100个视频（B站限制）
-                </small>
-            </div>
+            <div class="fetch-info" id="fetchInfo"></div>
         </div>
+
+        <!-- Toast提示 -->
+        <div id="toast" class="toast"></div>
 
         <div id="message"></div>
 
@@ -491,24 +539,38 @@
     </div>
 
     <script>
+        // Toast提示函数
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hide');
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    toast.classList.remove('hide');
+                }, 300);
+            }, duration);
+        }
+
         // 数据类型切换
         document.getElementById('dataType').addEventListener('change', function() {
             const isRanking = this.value === 'ranking';
             document.getElementById('partitionGroup').style.display = isRanking ? 'block' : 'none';
 
-            // 排行榜模式下禁用页数输入并显示提示
+            // 排行榜模式下禁用页数输入并显示Toast提示
             const pagesInput = document.getElementById('pages');
-            const rankingHint = document.getElementById('rankingHint');
             if (isRanking) {
                 pagesInput.disabled = true;
                 pagesInput.value = 1;
                 pagesInput.style.opacity = '0.5';
-                rankingHint.style.display = 'inline-block';
+                showToast('⚠️ 排行榜API仅返回约100个视频（B站限制）', 4000);
             } else {
                 pagesInput.disabled = false;
                 pagesInput.value = 5;
                 pagesInput.style.opacity = '1';
-                rankingHint.style.display = 'none';
             }
         });
 
